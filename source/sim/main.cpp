@@ -3,18 +3,39 @@
 #include <units/unit.hpp>
 #include <memory>
 
-units::units create_units_grid(int width, int height, float radius, float spacing)
+units::units create_units_grid(units::vec2f origin, units::vec2i size, float radius, float spacing)
 {
     units::units group;
-    for (int i = 0; i < width; ++i)
-        for (int j = 0; j < height; ++j)
+    for (int i = 0; i < size[0]; ++i)
+        for (int j = 0; j < size[1]; ++j)
             group.push_back(units::unit{
                 radius,
-                {
+                origin +
+                units::vec2f{
                     spacing + radius + i * (radius * 2 + spacing),
                     spacing + radius + j * (radius * 2 + spacing)
                 }});
     return group;
+}
+
+bool collides(const units::unit& u, const units::units& group)
+{
+    for (auto& other : group)
+        if (&u != &other && cml::length(u.position - other.position) < (u.radius + other.radius))
+            return true;
+    return false;
+}
+
+void update_units(units::units& group)
+{
+    for (auto& u : group)
+    {
+        auto old_position = u.position;
+        u.position[0] += std::rand() % 5 - 2;
+        u.position[1] += std::rand() % 5 - 2;
+        if (collides(u, group))
+            u.position = old_position;
+    }
 }
 
 void draw_units(const units::units& group, sf::RenderWindow& window)
@@ -66,10 +87,11 @@ void main_loop(sf::RenderWindow& window, F step)
 int main()
 {
     auto window = create_window();
-    auto group = create_units_grid(6, 8, 7, 7);
+    auto group = create_units_grid({5, 5}, {10, 10}, 5, 7);
 
     main_loop(*window, [&]
     {
+        update_units(group);
         draw_units(group, *window);
     });
 
