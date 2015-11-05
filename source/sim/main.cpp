@@ -59,24 +59,52 @@ std::unique_ptr<sf::RenderWindow> create_window()
 {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 16;
-    auto window = std::make_unique<sf::RenderWindow>(sf::VideoMode(800, 600), "units", sf::Style::Close | sf::Style::Titlebar, settings);
+    auto window = std::make_unique<sf::RenderWindow>(sf::VideoMode(800, 600), "units", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
     return window;
 }
 
+class view_controller
+{
+public:
+    sf::View get_view(sf::Vector2u window_size)
+    {
+        return {pan, sf::Vector2f(window_size)};
+    }
+    void pan_x(float d)
+    {
+        pan.x -= d;
+    }
+    void pan_y(float d)
+    {
+        pan.y -= d;
+    }
+private:
+    sf::Vector2f pan{0, 0};
+};
+
 template <typename F>
 void main_loop(sf::RenderWindow& window, F step)
 {
+    view_controller main_view;
     while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
         {
+            if (event.type == sf::Event::MouseWheelScrolled)
+            {
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                    main_view.pan_y(event.mouseWheelScroll.delta * 5);
+                else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
+                    main_view.pan_x(event.mouseWheelScroll.delta * 5);
+            }
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         window.clear();
+        window.setView(main_view.get_view(window.getSize()));
 
         step();
 
