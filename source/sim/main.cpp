@@ -82,28 +82,20 @@ private:
     sf::Vector2f pan{0, 0};
 };
 
-template <typename F>
-void main_loop(sf::RenderWindow& window, F step)
+template <typename F, typename EH>
+void main_loop(sf::RenderWindow& window, EH handler, F step)
 {
-    view_controller main_view;
     while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::MouseWheelScrolled)
-            {
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
-                    main_view.pan_y(event.mouseWheelScroll.delta * 5);
-                else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
-                    main_view.pan_x(event.mouseWheelScroll.delta * 5);
-            }
+            handler(event);
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         window.clear();
-        window.setView(main_view.get_view(window.getSize()));
 
         step();
 
@@ -115,10 +107,23 @@ int main()
 {
     auto window = create_window();
     auto group = create_units_grid({5, 5}, {10, 10}, 5, 7);
+    view_controller main_view;
 
-    main_loop(*window, [&]
+    main_loop(*window, [&](const sf::Event& event)
+    {
+        if (event.type == sf::Event::MouseWheelScrolled)
+        {
+            if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                main_view.pan_y(event.mouseWheelScroll.delta * 5);
+            else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
+                main_view.pan_x(event.mouseWheelScroll.delta * 5);
+        }
+    },
+    [&]
     {
         update_units(group);
+
+        window->setView(main_view.get_view(window->getSize()));
         draw_units(group, *window);
     });
 
