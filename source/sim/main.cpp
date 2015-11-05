@@ -38,6 +38,12 @@ void update_units(units::units& group)
     }
 }
 
+void set_units_target(units::units& group, units::vec2f target)
+{
+    for (auto& u : group)
+        u.position = target;
+}
+
 void draw_units(const units::units& group, sf::RenderWindow& window)
 {
     sf::CircleShape shape(1, 16);
@@ -117,6 +123,11 @@ int main()
                 main_view.pan_y(event.mouseWheelScroll.delta * 5);
             else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
                 main_view.pan_x(event.mouseWheelScroll.delta * 5);
+        }
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+        {
+            sf::Vector2f world_position = window->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+            set_units_target(group, {world_position.x, world_position.y});
         }
     },
     [&]
