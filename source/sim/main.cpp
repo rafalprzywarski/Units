@@ -42,15 +42,14 @@ void draw_units(const units::units& group, sf::RenderWindow& window)
 {
     sf::CircleShape shape(1, 16);
     shape.setFillColor(sf::Color(0, 0, 0, 0));
-    shape.setOutlineThickness(2);
+    float thickness = 2;
+    shape.setOutlineThickness(thickness);
     shape.setOutlineColor(sf::Color(150, 250, 100));
 
     for (auto& u : group)
     {
-        auto r = u.radius - 1;
-        auto r2 = 0.5f * r;
-        shape.setRadius(r);
-        shape.setPosition(u.position[0] - r2, u.position[1] - r2);
+        shape.setRadius(u.radius - thickness);
+        shape.setPosition(u.position[0] - u.radius, u.position[1] - u.radius);
         window.draw(shape);
     }
 }
