@@ -58,4 +58,12 @@ TEST_F(unit_container_test, should_check_for_collisions_with_multiple_units)
     EXPECT_FALSE(c.collides_with({11, 13}, 0.2f));
 }
 
+TEST_F(unit_container_test, should_fail_to_put_colliding_units)
+{
+    container c;
+    ASSERT_TRUE(c.put(simple_unit{1, {10, 10}, 2}));
+    ASSERT_FALSE(c.put(simple_unit{1, {13, 10}, 2}));
+    EXPECT_FALSE(c.collides_with({13, 10}, 0.2f));
+}
+
 }

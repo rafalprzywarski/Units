@@ -8,9 +8,13 @@ template <typename unit_type>
 class unit_container
 {
 public:
-    void put(const unit_type& u)
+    bool put(const unit_type& u)
     {
+        if (collides_with(u.position, u.radius))
+            return false;
+
         units.push_back(u);
+        return true;
     }
     bool collides_with(const vec2f& position, float radius) const
     {
