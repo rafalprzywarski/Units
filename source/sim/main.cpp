@@ -31,6 +31,15 @@ void update_units(units::units& group)
     for (auto& u : group)
     {
         auto old_position = u.position;
+        auto direction = u.target_position - u.position;
+        if (length(direction) == 0)
+            continue;
+        u.position += normalize(direction) * (2 + std::rand() % 10 * 0.2f);
+        if (!collides(u, group))
+            continue;
+
+        u.position = old_position;
+
         u.position[0] += std::rand() % 5 - 2;
         u.position[1] += std::rand() % 5 - 2;
         if (collides(u, group))
@@ -41,7 +50,7 @@ void update_units(units::units& group)
 void set_units_target(units::units& group, units::vec2f target)
 {
     for (auto& u : group)
-        u.position = target;
+        u.target_position = target;
 }
 
 void draw_units(const units::units& group, sf::RenderWindow& window)
@@ -112,7 +121,7 @@ void main_loop(sf::RenderWindow& window, EH handler, F step)
 int main()
 {
     auto window = create_window();
-    auto group = create_units_grid({5, 5}, {10, 10}, 5, 7);
+    auto group = create_units_grid({5, 5}, {30, 30}, 5, 7);
     view_controller main_view;
 
     main_loop(*window, [&](const sf::Event& event)
