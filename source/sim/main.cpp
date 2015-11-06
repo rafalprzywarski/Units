@@ -124,6 +124,7 @@ int main()
     auto group = create_units_grid({5, 5}, {30, 30}, 5, 7);
     view_controller main_view;
 
+    sf::Clock frameClock;
     main_loop(*window, [&](const sf::Event& event)
     {
         if (event.type == sf::Event::MouseWheelScrolled)
@@ -141,10 +142,15 @@ int main()
     },
     [&]
     {
+        std::cout << "frame time: " << frameClock.restart().asMicroseconds() << " us" << std::endl;
+        sf::Clock stepClock;
         update_units(group);
+        std::cout << "update: " << stepClock.restart().asMicroseconds() << " us" << std::endl;
 
         window->setView(main_view.get_view(window->getSize()));
         draw_units(group, *window);
+
+        std::cout << "render: " << stepClock.restart().asMicroseconds() << " us" << std::endl;
     });
 
 }
