@@ -45,4 +45,17 @@ TEST_F(unit_container_test, should_check_for_collisions_with_a_single_unit)
     EXPECT_FALSE(c.collides_with({14.2426, 14.2426}, 0.99f));
 }
 
+TEST_F(unit_container_test, should_check_for_collisions_with_multiple_units)
+{
+    container c;
+    c.put(simple_unit{1, {10, 10}, 1});
+    c.put(simple_unit{2, {13, 10}, 1});
+    c.put(simple_unit{3, {13, 13}, 1});
+
+    EXPECT_TRUE(c.collides_with({11, 10}, 0.2f));
+    EXPECT_TRUE(c.collides_with({14, 10}, 0.2f));
+    EXPECT_TRUE(c.collides_with({14, 13}, 0.2f));
+    EXPECT_FALSE(c.collides_with({11, 13}, 0.2f));
+}
+
 }
