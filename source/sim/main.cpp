@@ -1,6 +1,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <units/unit.hpp>
+#include <units/formations.hpp>
 #include <memory>
 
 units::units create_units_grid(units::vec2f origin, units::vec2i size, float radius, float spacing)
@@ -137,7 +138,8 @@ int main()
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
         {
             sf::Vector2f world_position = window->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
-            set_units_target(group, {world_position.x, world_position.y});
+            units::box_formation formation{{1, 0}, {world_position.x, world_position.y}, 1000, 25};
+            assign_formation(formation, group);
         }
     },
     [&]
