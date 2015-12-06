@@ -27,6 +27,13 @@ void update_unit(walking_unit& u)
     u.position += direction * std::min(1.0f, (2 + std::rand() % 10 * 0.2f) / distance);
 }
 
+void draw_circle(sf::CircleShape shape, ams::vec2f pos, float radius, sf::RenderWindow& window)
+{
+    shape.setRadius(radius);
+    shape.setPosition(pos[0] - radius, pos[1] - radius);
+    window.draw(shape);
+}
+
 template <typename unit_container>
 void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
 {
@@ -34,23 +41,17 @@ void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
     sf::CircleShape shape(1, 16);
     shape.setPointCount(32);
     shape.setFillColor(sf::Color(0, 0, 0, 0));
-    float thickness = 2;
-    shape.setOutlineThickness(thickness);
+    shape.setOutlineThickness(2);
     shape.setOutlineColor(sf::Color(150, 250, 100));
 
     for (auto& u : group)
     {
-        shape.setRadius(u.radius);
-        shape.setPosition(u.position[0] - u.radius, u.position[1] - u.radius);
-        window.draw(shape);
+        draw_circle(shape, u.position, u.radius, window);
         float foot_radius = FOOT_RATIO * u.radius;
-        shape.setRadius(foot_radius);
         auto left_foot = ams::cross_product(u.direction) * (u.feet_spacing * 0.5f);
         auto right_foot = -left_foot;
-        shape.setPosition(u.position[0] + left_foot[0] - foot_radius, u.position[1] + left_foot[1] - foot_radius);
-        window.draw(shape);
-        shape.setPosition(u.position[0] + right_foot[0] - foot_radius, u.position[1] + right_foot[1] - foot_radius);
-        window.draw(shape);
+        draw_circle(shape, u.position + left_foot, foot_radius, window);
+        draw_circle(shape, u.position + right_foot, foot_radius, window);
     }
 }
 
