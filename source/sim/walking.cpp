@@ -11,14 +11,14 @@ enum class walking_unit_state
 struct walking_unit
 {
     float radius = 0;
-    float feet_spacing = 0;
+    float foot_distance = 0;
     float speed = 3;
     ams::vec2f left_foot_position, right_foot_position;
     ams::vec2f target_position;
     walking_unit_state state = walking_unit_state::STANDING;
 
     walking_unit() = default;
-    walking_unit(float radius, float feet_spacing, ams::vec2f position) : radius(radius), feet_spacing(feet_spacing), left_foot_position(position - ams::vec2f{feet_spacing * 0.5f, 0}), right_foot_position(position + ams::vec2f{feet_spacing * 0.5f, 0}), target_position(position) { }
+    walking_unit(float radius, float foot_distance, ams::vec2f position) : radius(radius), foot_distance(foot_distance), left_foot_position(position - ams::vec2f{foot_distance, 0}), right_foot_position(position + ams::vec2f{foot_distance, 0}), target_position(position) { }
 
     ams::vec2f get_position() const { return 0.5f * (left_foot_position + right_foot_position); }
 };
@@ -41,8 +41,8 @@ void update_unit(walking_unit& u)
     auto distance = length(direction);
     ams::vec2f position = u.get_position() + direction * std::min(1.0f, u.speed / distance);
     direction = direction / distance;
-    u.left_foot_position = position + ams::cross_product(direction) * u.feet_spacing * 0.5f;
-    u.right_foot_position = position - ams::cross_product(direction) * u.feet_spacing * 0.5f;
+    u.left_foot_position = position + ams::cross_product(direction) * u.foot_distance;
+    u.right_foot_position = position - ams::cross_product(direction) * u.foot_distance;
     u.state = walking_unit_state::MOVING_RIGHT_LEG;
 }
 
@@ -83,7 +83,7 @@ void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
 int main()
 {
     auto window = ams::gui::create_window();
-    walking_unit unit{30, 23, {0, 0}};
+    walking_unit unit{30, 12, {0, 0}};
 
     ams::gui::main_loop(*window, [&](float world_x, float world_y)
     {
