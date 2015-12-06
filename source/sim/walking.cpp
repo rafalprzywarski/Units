@@ -9,23 +9,25 @@ struct walking_unit
     float feet_spacing = 0;
     float speed = 3;
     ams::vec2f position;
+    ams::vec2f left_foot_position, right_foot_position;
     ams::vec2f target_position;
-    ams::vec2f direction{0, 1};
 
     walking_unit() = default;
-    walking_unit(float radius, float feet_spacing, ams::vec2f position) : radius(radius), feet_spacing(feet_spacing), position(position), target_position(position) { }
+    walking_unit(float radius, float feet_spacing, ams::vec2f position) : radius(radius), feet_spacing(feet_spacing), position(position), left_foot_position(position - ams::vec2f{feet_spacing * 0.5f, 0}), right_foot_position(position + ams::vec2f{feet_spacing * 0.5f, 0}), target_position(position) { }
 };
 
 using walking_units = std::vector<walking_unit>;
 
 void update_unit(walking_unit& u)
 {
-    auto direction = u.target_position - u.position;
+    ams::vec2f direction = u.target_position - u.position;
     auto distance = length(direction);
     if (distance < 0.5)
         return;
-    u.direction = direction / distance;
     u.position += direction * std::min(1.0f, u.speed / distance);
+    direction = direction / distance;
+    u.left_foot_position = u.position + ams::cross_product(direction) * u.feet_spacing * 0.5f;
+    u.right_foot_position = u.position - ams::cross_product(direction) * u.feet_spacing * 0.5f;
 }
 
 void draw_circle(sf::CircleShape shape, ams::vec2f pos, float radius, sf::RenderWindow& window)
@@ -49,10 +51,8 @@ void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
     {
         draw_circle(shape, u.position, u.radius, window);
         float foot_radius = FOOT_RATIO * u.radius;
-        auto left_foot = ams::cross_product(u.direction) * (u.feet_spacing * 0.5f);
-        auto right_foot = -left_foot;
-        draw_circle(shape, u.position + left_foot, foot_radius, window);
-        draw_circle(shape, u.position + right_foot, foot_radius, window);
+        draw_circle(shape, u.left_foot_position, foot_radius, window);
+        draw_circle(shape, u.right_foot_position, foot_radius, window);
     }
 }
 
