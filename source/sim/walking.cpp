@@ -104,18 +104,22 @@ void draw_circle(sf::CircleShape shape, ams::vec2f pos, float radius, sf::Render
 template <typename unit_container>
 void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
 {
+    auto COLOR = sf::Color(150, 250, 100);
+    auto SELECTED_COLOR = sf::Color(250, 150, 100);
     const auto FOOT_RATIO = 0.2f;
     sf::CircleShape shape(1, 16);
     shape.setPointCount(32);
     shape.setFillColor(sf::Color(0, 0, 0, 0));
     shape.setOutlineThickness(2);
-    shape.setOutlineColor(sf::Color(150, 250, 100));
+    shape.setOutlineColor(COLOR);
 
     for (auto& u : group)
     {
         draw_circle(shape, u.get_position(), u.radius, window);
         float foot_radius = FOOT_RATIO * u.radius;
+        shape.setOutlineColor(u.state == walking_unit_state::MOVING_LEFT_LEG ? SELECTED_COLOR : COLOR);
         draw_circle(shape, u.left_foot_position, foot_radius, window);
+        shape.setOutlineColor(u.state == walking_unit_state::MOVING_RIGHT_LEG ? SELECTED_COLOR : COLOR);
         draw_circle(shape, u.right_foot_position, foot_radius, window);
     }
 }
