@@ -1,7 +1,7 @@
 #pragma once
-#include <units/math.hpp>
+#include <ams/math.hpp>
 
-namespace units
+namespace ams
 {
 
 template <typename unit_type>

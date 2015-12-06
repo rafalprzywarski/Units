@@ -1,8 +1,8 @@
 #pragma once
-#include <units/math.hpp>
+#include <ams/math.hpp>
 #include <vector>
 
-namespace units
+namespace ams
 {
 
 struct unit

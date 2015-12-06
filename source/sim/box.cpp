@@ -1,24 +1,24 @@
-#include <units/unit.hpp>
-#include <units/formations.hpp>
-#include <units/gui/window.hpp>
+#include <ams/unit.hpp>
+#include <ams/formations.hpp>
+#include <ams/gui/window.hpp>
 #include <memory>
 
-units::units create_units_grid(units::vec2f origin, units::vec2i size, float radius, float spacing)
+ams::units create_units_grid(ams::vec2f origin, ams::vec2i size, float radius, float spacing)
 {
-    units::units group;
+    ams::units group;
     for (int i = 0; i < size[0]; ++i)
         for (int j = 0; j < size[1]; ++j)
-            group.push_back(units::unit{
+            group.push_back(ams::unit{
                 radius,
                 origin +
-                units::vec2f{
+                ams::vec2f{
                     spacing + radius + i * (radius * 2 + spacing),
                     spacing + radius + j * (radius * 2 + spacing)
                 }});
     return group;
 }
 
-bool collides(const units::unit& u, const units::units& group)
+bool collides(const ams::unit& u, const ams::units& group)
 {
     for (auto& other : group)
         if (&u != &other && cml::length(u.position - other.position) < (u.radius + other.radius))
@@ -26,7 +26,7 @@ bool collides(const units::unit& u, const units::units& group)
     return false;
 }
 
-void update_units(units::units& group)
+void update_units(ams::units& group)
 {
     for (auto& u : group)
     {
@@ -47,7 +47,7 @@ void update_units(units::units& group)
     }
 }
 
-void set_units_target(units::units& group, units::vec2f target)
+void set_units_target(ams::units& group, ams::vec2f target)
 {
     for (auto& u : group)
         u.target_position = target;
@@ -55,11 +55,11 @@ void set_units_target(units::units& group, units::vec2f target)
 
 int main()
 {
-    auto window = units::gui::create_window();
+    auto window = ams::gui::create_window();
     auto group = create_units_grid({5, 5}, {30, 30}, 5, 7);
-    units::gui::main_loop(*window, [&](float world_x, float world_y)
+    ams::gui::main_loop(*window, [&](float world_x, float world_y)
     {
-        units::box_formation formation{{1, 0}, {world_x, world_y}, 1000, 25};
+        ams::box_formation formation{{1, 0}, {world_x, world_y}, 1000, 25};
         assign_formation(formation, group);
-    }, [&] { update_units(group); }, [&] { units::gui::draw_units(group, *window); } );
+    }, [&] { update_units(group); }, [&] { ams::gui::draw_units(group, *window); } );
 }

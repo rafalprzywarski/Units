@@ -1,8 +1,8 @@
 #pragma once
-#include <units/unit.hpp>
+#include <ams/unit.hpp>
 #include <algorithm>
 
-namespace units
+namespace ams
 {
 
 /**

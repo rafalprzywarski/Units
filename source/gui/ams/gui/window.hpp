@@ -3,7 +3,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-namespace units
+namespace ams
 {
 namespace gui
 {

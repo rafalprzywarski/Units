@@ -29,7 +29,7 @@ std::unique_ptr<sf::RenderWindow> create_window()
 {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 16;
-    auto window = std::make_unique<sf::RenderWindow>(sf::VideoMode(800, 600), "AMS", sf::Style::Default, settings);
+    auto window = std::make_unique<sf::RenderWindow>(sf::VideoMode(800, 600), "units", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
     return window;
 }
