@@ -7,6 +7,7 @@ struct walking_unit
 {
     float radius = 0;
     float feet_spacing = 0;
+    float speed = 3;
     ams::vec2f position;
     ams::vec2f target_position;
     ams::vec2f direction{0, 1};
@@ -24,7 +25,7 @@ void update_unit(walking_unit& u)
     if (distance < 0.5)
         return;
     u.direction = direction / distance;
-    u.position += direction * std::min(1.0f, (2 + std::rand() % 10 * 0.2f) / distance);
+    u.position += direction * std::min(1.0f, u.speed / distance);
 }
 
 void draw_circle(sf::CircleShape shape, ams::vec2f pos, float radius, sf::RenderWindow& window)
