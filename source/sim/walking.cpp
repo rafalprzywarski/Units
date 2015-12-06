@@ -25,15 +25,20 @@ struct walking_unit
 
 using walking_units = std::vector<walking_unit>;
 
+bool has_reached_targed(walking_unit& u)
+{
+    return length(u.target_position - u.get_position()) < 0.5;
+}
+
 void update_unit(walking_unit& u)
 {
-    ams::vec2f direction = u.target_position - u.get_position();
-    auto distance = length(direction);
-    if (distance < 0.5)
+    if (has_reached_targed(u))
     {
         u.state = walking_unit_state::STANDING;
         return;
     }
+    ams::vec2f direction = u.target_position - u.get_position();
+    auto distance = length(direction);
     ams::vec2f position = u.get_position() + direction * std::min(1.0f, u.speed / distance);
     direction = direction / distance;
     u.left_foot_position = position + ams::cross_product(direction) * u.feet_spacing * 0.5f;
