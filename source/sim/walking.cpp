@@ -12,10 +12,11 @@ struct walking_unit
 {
     float radius = 0;
     float foot_distance = 0;
-    float speed = 3;
+    float speed = 1;
     ams::vec2f left_foot_position, right_foot_position;
     ams::vec2f target_position;
     walking_unit_state state = walking_unit_state::STANDING;
+    unsigned ticks = 0;
 
     walking_unit() = default;
     walking_unit(float radius, float foot_distance, ams::vec2f position) : radius(radius), foot_distance(foot_distance), left_foot_position(position - ams::vec2f{foot_distance, 0}), right_foot_position(position + ams::vec2f{foot_distance, 0}), target_position(position) { }
@@ -30,6 +31,28 @@ bool has_reached_targed(walking_unit& u)
     return length(u.target_position - u.get_position()) < 0.5;
 }
 
+walking_unit_state other_leg(walking_unit_state state)
+{
+    return (state == walking_unit_state::MOVING_RIGHT_LEG) ? walking_unit_state::MOVING_LEFT_LEG : walking_unit_state::MOVING_RIGHT_LEG;
+}
+
+ams::vec2f get_foot_target_position(walking_unit& u, float sign)
+{
+    auto direction = normalize(u.target_position - u.get_position());
+    auto direction_normal = ams::cross_product(direction);
+    return u.target_position - sign * u.foot_distance * direction_normal;
+}
+
+ams::vec2f get_left_foot_target_position(walking_unit& u)
+{
+    return get_foot_target_position(u, -1);
+}
+
+ams::vec2f get_right_foot_target_position(walking_unit& u)
+{
+    return get_foot_target_position(u, 1);
+}
+
 void update_unit(walking_unit& u)
 {
     if (has_reached_targed(u))
@@ -37,21 +60,38 @@ void update_unit(walking_unit& u)
         u.state = walking_unit_state::STANDING;
         return;
     }
-    ams::vec2f direction = u.target_position - u.get_position();
-    auto distance = length(direction);
-    ams::vec2f position = u.get_position() + direction * std::min(1.0f, u.speed / distance);
-    direction = direction / distance;
-    u.left_foot_position = position + ams::cross_product(direction) * u.foot_distance;
-    u.right_foot_position = position - ams::cross_product(direction) * u.foot_distance;
-    u.state = walking_unit_state::MOVING_RIGHT_LEG;
+
+    if (u.state == walking_unit_state::STANDING)
+    {
+        u.state = walking_unit_state::MOVING_RIGHT_LEG;
+        u.ticks = 20;
+    }
+
+    if (u.ticks == 0)
+    {
+        u.ticks = 40;
+        u.state = other_leg(u.state);
+    }
+
+    u.ticks--;
+
+    if (u.state == walking_unit_state::MOVING_LEFT_LEG)
+    {
+        ams::vec2f direction = get_left_foot_target_position(u) - u.left_foot_position;
+        float distance = length(direction);
+        u.left_foot_position += direction * std::min(1.0f, u.speed / distance);
+    }
+    else
+    {
+        ams::vec2f direction = get_right_foot_target_position(u) - u.right_foot_position;
+        float distance = length(direction);
+        u.right_foot_position += direction * std::min(1.0f, u.speed / distance);
+    }
 }
 
 void set_target_position(walking_unit& u, ams::vec2f target_position)
 {
-    if (u.state == walking_unit_state::STANDING)
-    {
-        u.target_position = target_position;
-    }
+    u.target_position = target_position;
 }
 
 void draw_circle(sf::CircleShape shape, ams::vec2f pos, float radius, sf::RenderWindow& window)
