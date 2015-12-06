@@ -7,12 +7,14 @@ struct walking_unit
 {
     float radius = 0;
     float foot_distance = 0;
-    float speed = 1;
+    float max_speed = 1.5;
+    float speed = max_speed;
     ams::vec2f feet_positions[2];
     ams::vec2f current_foot_target;
     ams::vec2f target_position;
     bool is_walking = false;
     unsigned current_foot = 0;
+    unsigned max_ticks = 30;
     unsigned ticks = 0;
 
     walking_unit() = default;
@@ -48,20 +50,33 @@ void update_unit(walking_unit& u)
     {
         u.is_walking = true;
         u.current_foot = 0;
-        u.ticks = 20;
+        u.ticks = u.max_ticks / 2;
+        u.speed = u.max_speed;
+        u.current_foot_target = get_foot_target_position(u);
     }
 
     if (u.ticks == 0)
     {
-        u.ticks = 40;
+        u.ticks = u.max_ticks;
+        u.speed = u.max_speed;
         u.current_foot = 1 - u.current_foot;
+        u.current_foot_target = get_foot_target_position(u);
     }
 
     u.ticks--;
 
-    ams::vec2f direction = get_foot_target_position(u) - u.feet_positions[u.current_foot];
+    ams::vec2f direction = u.current_foot_target - u.feet_positions[u.current_foot];
     float distance = length(direction);
-    u.feet_positions[u.current_foot] += direction * std::min(1.0f, u.speed / distance);
+    float step = u.speed / distance;
+    if (u.speed > distance)
+    {
+        u.ticks = 0;
+        u.feet_positions[u.current_foot] = u.current_foot_target;
+    }
+    else
+    {
+        u.feet_positions[u.current_foot] += direction * u.speed / distance;
+    }
 }
 
 void set_target_position(walking_unit& u, ams::vec2f target_position)
