@@ -11,7 +11,7 @@ class view_controller
 public:
     sf::View get_view(sf::Vector2u window_size)
     {
-        return {pan, sf::Vector2f(window_size)};
+        return {{pan.x, pan.y}, {float(window_size.x), -float(window_size.y)}};
     }
     void pan_x(float d)
     {
@@ -19,7 +19,7 @@ public:
     }
     void pan_y(float d)
     {
-        pan.y -= d;
+        pan.y += d;
     }
 private:
     sf::Vector2f pan{0, 0};

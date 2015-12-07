@@ -35,7 +35,7 @@ ams::vec2f get_foot_target_position(walking_unit& u)
     auto sign = float(u.current_foot) * 2 - 1;
     auto direction = normalize(u.target_position - u.get_position());
     auto direction_normal = ams::cross_product(direction);
-    return u.target_position + sign * u.foot_distance * direction_normal;
+    return u.target_position - sign * u.foot_distance * direction_normal;
 }
 
 void update_unit(walking_unit& u)
@@ -49,7 +49,7 @@ void update_unit(walking_unit& u)
     if (!u.is_walking)
     {
         u.is_walking = true;
-        u.current_foot = 0;
+        u.current_foot = 1;
         u.ticks = u.max_ticks / 2;
         u.speed = u.max_speed;
         u.current_foot_target = get_foot_target_position(u);
