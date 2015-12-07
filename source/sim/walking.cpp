@@ -67,7 +67,6 @@ void update_unit(walking_unit& u)
 
     ams::vec2f direction = u.current_foot_target - u.feet_positions[u.current_foot];
     float distance = length(direction);
-    float step = u.speed / distance;
     if (u.speed > distance)
     {
         u.ticks = 0;
