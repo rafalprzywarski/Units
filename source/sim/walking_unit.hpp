@@ -110,14 +110,6 @@ inline walking_unit_state walking_tick(walking_unit& u)
     return walking_unit_state::walking;
 }
 
-inline walking_unit_state tick(walking_unit& u)
-{
-    if (u.logical.state == walking_unit_state::walking)
-        return walking_tick(u);
-    else
-        return standing_tick(u);
-}
-
 inline walking_unit_state walking_set_target_position(walking_unit& u, ams::vec2f target_position)
 {
     u.logical.target_position = target_position;
@@ -145,9 +137,17 @@ inline void set_target_position(walking_unit& u, ams::vec2f target_position)
         u.logical.state = standing_set_target_position(u, target_position);
 }
 
+inline void tick(walking_unit& u)
+{
+    if (u.logical.state == walking_unit_state::walking)
+        u.logical.state =  walking_tick(u);
+    else
+        u.logical.state =  standing_tick(u);
+}
+
 inline void update_unit(walking_unit& u)
 {
-    u.logical.state = tick(u);
+    tick(u);
 }
 
 }
