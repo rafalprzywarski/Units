@@ -82,14 +82,9 @@ inline void step_tick(walking_unit& u)
     ams::vec2f direction = current_foot_target - u.physical.feet_positions[u.logical.current_foot];
     float distance = length(direction);
     if (u.physical.speed > distance)
-    {
-        u.logical.ticks = 0;
         u.physical.feet_positions[u.logical.current_foot] = current_foot_target;
-    }
     else
-    {
         u.physical.feet_positions[u.logical.current_foot] += direction * u.physical.speed / distance;
-    }
 }
 
 inline walking_unit_state standing_tick(walking_unit& u)
