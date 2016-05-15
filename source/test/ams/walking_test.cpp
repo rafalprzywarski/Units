@@ -17,10 +17,10 @@ struct walking_test : testing::Test
     {
         update_unit(u);
 
-        for (int limit = 1000; u.logical.is_walking && limit > 0; --limit)
+        for (int limit = 1000; u.logical.state != walking_unit_state::standing && limit > 0; --limit)
             update_unit(u);
 
-        if (u.logical.is_walking)
+        if (u.logical.state != walking_unit_state::standing)
             FAIL() << "never stopped";
     }
 };

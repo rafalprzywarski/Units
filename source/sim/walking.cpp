@@ -30,9 +30,9 @@ void draw_walking_units(const unit_container& group, sf::RenderWindow& window)
     {
         draw_circle(shape, get_position(u), u.model_.radius, window);
         float foot_radius = FOOT_RATIO * u.model_.radius;
-        shape.setOutlineColor((u.logical.is_walking && u.logical.current_foot == 0) ? SELECTED_COLOR : COLOR);
+        shape.setOutlineColor((u.logical.state == walking_unit_state::walking && u.logical.current_foot == 0) ? SELECTED_COLOR : COLOR);
         draw_circle(shape, u.physical.feet_positions[0], foot_radius, window);
-        shape.setOutlineColor((u.logical.is_walking && u.logical.current_foot == 1) ? SELECTED_COLOR : COLOR);
+        shape.setOutlineColor((u.logical.state == walking_unit_state::walking && u.logical.current_foot == 1) ? SELECTED_COLOR : COLOR);
         draw_circle(shape, u.physical.feet_positions[1], foot_radius, window);
     }
 }

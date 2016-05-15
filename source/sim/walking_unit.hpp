@@ -5,6 +5,12 @@
 namespace ams
 {
 
+enum class walking_unit_state
+{
+    standing,
+    walking
+};
+
 struct walking_unit
 {
     struct model
@@ -23,7 +29,7 @@ struct walking_unit
     } physical;
     struct logical_state
     {
-        bool is_walking = false;
+        walking_unit_state state = walking_unit_state::standing;
         unsigned ticks = 0;
         ams::vec2f target_position;
         unsigned current_foot = 0;
@@ -35,11 +41,6 @@ struct walking_unit
 };
 
 using walking_units = std::vector<walking_unit>;
-
-inline void set_target_position(walking_unit& u, ams::vec2f target_position)
-{
-    u.logical.target_position = target_position;
-}
 
 inline vec2f get_position(const walking_unit& u)
 {
@@ -59,29 +60,22 @@ inline vec2f get_foot_target_position(walking_unit& u)
     return u.logical.target_position - sign * u.model_.foot_distance * direction_normal;
 }
 
-inline void update_unit(walking_unit& u)
+inline void start_first_step(walking_unit& u)
 {
-    if (has_reached_targed(u))
-    {
-        u.logical.is_walking = false;
-        return;
-    }
+    u.logical.current_foot = 1;
+    u.logical.ticks = u.model_.max_ticks;
+    u.physical.speed = u.model_.max_speed / 2;
+}
 
-    if (!u.logical.is_walking)
-    {
-        u.logical.is_walking = true;
-        u.logical.current_foot = 1;
-        u.logical.ticks = u.model_.max_ticks / 2;
-        u.physical.speed = u.model_.max_speed;
-    }
+inline void start_next_step(walking_unit& u)
+{
+    u.logical.ticks = u.model_.max_ticks;
+    u.physical.speed = u.model_.max_speed;
+    u.logical.current_foot = 1 - u.logical.current_foot;
+}
 
-    if (u.logical.ticks == 0)
-    {
-        u.logical.ticks = u.model_.max_ticks;
-        u.physical.speed = u.model_.max_speed;
-        u.logical.current_foot = 1 - u.logical.current_foot;
-    }
-
+inline void step_tick(walking_unit& u)
+{
     u.logical.ticks--;
 
     ams::vec2f current_foot_target = get_foot_target_position(u);
@@ -96,6 +90,64 @@ inline void update_unit(walking_unit& u)
     {
         u.physical.feet_positions[u.logical.current_foot] += direction * u.physical.speed / distance;
     }
+}
+
+inline walking_unit_state standing_tick(walking_unit& u)
+{
+    return walking_unit_state::standing;
+}
+
+inline walking_unit_state walking_tick(walking_unit& u)
+{
+    step_tick(u);
+
+    if (has_reached_targed(u))
+        return walking_unit_state::standing;
+
+    if (u.logical.ticks == 0)
+        start_next_step(u);
+
+    return walking_unit_state::walking;
+}
+
+inline walking_unit_state tick(walking_unit& u)
+{
+    if (u.logical.state == walking_unit_state::walking)
+        return walking_tick(u);
+    else
+        return standing_tick(u);
+}
+
+inline walking_unit_state walking_set_target_position(walking_unit& u, ams::vec2f target_position)
+{
+    u.logical.target_position = target_position;
+
+    return walking_unit_state::walking;
+}
+
+inline walking_unit_state standing_set_target_position(walking_unit& u, ams::vec2f target_position)
+{
+    u.logical.target_position = target_position;
+
+    if (has_reached_targed(u))
+        return walking_unit_state::standing;
+
+    start_first_step(u);
+
+    return walking_unit_state::walking;
+}
+
+inline void set_target_position(walking_unit& u, ams::vec2f target_position)
+{
+    if (u.logical.state == walking_unit_state::walking)
+        u.logical.state = walking_set_target_position(u, target_position);
+    else
+        u.logical.state = standing_set_target_position(u, target_position);
+}
+
+inline void update_unit(walking_unit& u)
+{
+    u.logical.state = tick(u);
 }
 
 }
