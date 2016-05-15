@@ -4,6 +4,7 @@ include_directories("../core")
 
 add_executable(ams_test
     ams/unit_container_test.cpp
+    ams/walking_test.cpp
     main.cpp
 )
 
