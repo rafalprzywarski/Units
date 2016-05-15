@@ -16,14 +16,14 @@ struct walking_test : testing::Test
     void update_until_stops(walking_unit& u)
     {
         do update_unit(u);
-        while (u.is_walking);
+        while (u.logical.is_walking);
     }
 };
 
 TEST_F(walking_test, walking_forward)
 {
     const vec2f position{0, 0};
-    walking_unit unit{1, 0.25, position};
+    walking_unit unit{{1, 0.25}, position};
 
     const vec2f target_position{20, 0};
     set_target_position(unit, target_position);
