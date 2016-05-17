@@ -8,7 +8,8 @@ namespace ams
 enum class walking_unit_state
 {
     standing,
-    walking
+    walking,
+    rotating
 };
 
 struct walking_unit
@@ -32,6 +33,7 @@ struct walking_unit
         walking_unit_state state = walking_unit_state::standing;
         unsigned ticks = 0;
         ams::vec2f target_position;
+        ams::vec2f foot_target_positions[2];
         unsigned current_foot = 0;
         logical_state(ams::vec2f target_position) : target_position(target_position) { }
     } logical;
@@ -45,6 +47,11 @@ using walking_units = std::vector<walking_unit>;
 inline vec2f get_position(const walking_unit& u)
 {
     return (u.physical.feet_positions[0] + u.physical.feet_positions[1]) / 2;
+}
+
+inline vec2f get_direction(const walking_unit& u)
+{
+    return cross_product(normalize(u.physical.feet_positions[1] - u.physical.feet_positions[0]));
 }
 
 inline bool has_reached_targed(const walking_unit& u)
@@ -65,6 +72,7 @@ inline void start_first_step(walking_unit& u)
     u.logical.current_foot = 1;
     u.logical.ticks = u.model_.max_ticks;
     u.physical.speed = u.model_.max_speed / 2;
+    u.logical.foot_target_positions[u.logical.current_foot] = get_foot_target_position(u);
 }
 
 inline void start_next_step(walking_unit& u)
@@ -72,17 +80,17 @@ inline void start_next_step(walking_unit& u)
     u.logical.ticks = u.model_.max_ticks;
     u.physical.speed = u.model_.max_speed;
     u.logical.current_foot = 1 - u.logical.current_foot;
+    u.logical.foot_target_positions[u.logical.current_foot] = get_foot_target_position(u);
 }
 
 inline void step_tick(walking_unit& u)
 {
     u.logical.ticks--;
 
-    ams::vec2f current_foot_target = get_foot_target_position(u);
-    ams::vec2f direction = current_foot_target - u.physical.feet_positions[u.logical.current_foot];
+    ams::vec2f direction = u.logical.foot_target_positions[u.logical.current_foot] - u.physical.feet_positions[u.logical.current_foot];
     float distance = length(direction);
     if (u.physical.speed > distance)
-        u.physical.feet_positions[u.logical.current_foot] = current_foot_target;
+        u.physical.feet_positions[u.logical.current_foot] = u.logical.foot_target_positions[u.logical.current_foot];
     else
         u.physical.feet_positions[u.logical.current_foot] += direction * u.physical.speed / distance;
 }
@@ -90,6 +98,24 @@ inline void step_tick(walking_unit& u)
 inline walking_unit_state standing_tick(walking_unit& u)
 {
     return walking_unit_state::standing;
+}
+
+inline walking_unit_state rotating_tick(walking_unit& u)
+{
+    step_tick(u);
+
+    if (length(u.logical.foot_target_positions[u.logical.current_foot] - u.physical.feet_positions[u.logical.current_foot]) < 0.0005)
+    {
+        if (u.logical.current_foot == 0)
+        {
+            start_first_step(u);
+            return walking_unit_state::walking;
+        }
+        u.logical.current_foot = 1 - u.logical.current_foot;
+        return walking_unit_state::rotating;
+    }
+
+    return walking_unit_state::rotating;
 }
 
 inline walking_unit_state walking_tick(walking_unit& u)
@@ -105,11 +131,35 @@ inline walking_unit_state walking_tick(walking_unit& u)
     return walking_unit_state::walking;
 }
 
-inline walking_unit_state walking_set_target_position(walking_unit& u, ams::vec2f target_position)
+inline walking_unit_state walking_set_target_position(walking_unit& , ams::vec2f)
 {
-    u.logical.target_position = target_position;
-
     return walking_unit_state::walking;
+}
+
+inline walking_unit_state rotating_set_target_position(walking_unit& , ams::vec2f)
+{
+    return walking_unit_state::rotating;
+}
+
+inline vec2f get_target_direction(const walking_unit& u)
+{
+    return normalize(u.logical.target_position - get_position(u));
+}
+
+inline bool has_correct_direction(const walking_unit& u)
+{
+    return dot(get_direction(u), get_target_direction(u)) > 0.9;
+}
+
+inline void start_rotating(walking_unit& u)
+{
+    u.logical.current_foot = 1;
+    u.logical.ticks = u.model_.max_ticks;
+    u.physical.speed = u.model_.max_speed / 2;
+    auto position = get_position(u);
+    auto target_left_direction = cross_product(get_target_direction(u));
+    u.logical.foot_target_positions[0] = position + target_left_direction * u.model_.foot_distance;
+    u.logical.foot_target_positions[1] = position - target_left_direction * u.model_.foot_distance;
 }
 
 inline walking_unit_state standing_set_target_position(walking_unit& u, ams::vec2f target_position)
@@ -119,25 +169,47 @@ inline walking_unit_state standing_set_target_position(walking_unit& u, ams::vec
     if (has_reached_targed(u))
         return walking_unit_state::standing;
 
-    start_first_step(u);
+    if (has_correct_direction(u))
+    {
+        start_first_step(u);
+        return walking_unit_state::walking;
+    }
 
-    return walking_unit_state::walking;
+    start_rotating(u);
+
+    return walking_unit_state::rotating;
 }
 
 inline void set_target_position(walking_unit& u, ams::vec2f target_position)
 {
-    if (u.logical.state == walking_unit_state::walking)
-        u.logical.state = walking_set_target_position(u, target_position);
-    else
-        u.logical.state = standing_set_target_position(u, target_position);
+    switch (u.logical.state)
+    {
+        case walking_unit_state::rotating:
+            u.logical.state = rotating_set_target_position(u, target_position);
+            break;
+        case walking_unit_state::walking:
+            u.logical.state = walking_set_target_position(u, target_position);
+            break;
+        case walking_unit_state::standing:
+            u.logical.state = standing_set_target_position(u, target_position);
+            break;
+    }
 }
 
 inline void tick(walking_unit& u)
 {
-    if (u.logical.state == walking_unit_state::walking)
-        u.logical.state =  walking_tick(u);
-    else
-        u.logical.state =  standing_tick(u);
+    switch (u.logical.state)
+    {
+        case walking_unit_state::rotating:
+            u.logical.state = rotating_tick(u);
+            break;
+        case walking_unit_state::walking:
+            u.logical.state = walking_tick(u);
+            break;
+        case walking_unit_state::standing:
+            u.logical.state = standing_tick(u);
+            break;
+    }
 }
 
 inline void update_unit(walking_unit& u)
