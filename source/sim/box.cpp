@@ -10,7 +10,7 @@ ams::units create_units_grid(ams::vec2f origin, ams::vec2i size, float radius, f
         for (int j = 0; j < size[1]; ++j)
             group.push_back(ams::unit{
                 radius,
-                origin + ams::vec2f{i, j} * (radius * 2 + spacing) + ams::vec2f{1, 1} * (spacing + radius)});
+                origin + ams::vec2f{float(i), float(j)} * (radius * 2 + spacing) + ams::vec2f{1, 1} * (spacing + radius)});
     return group;
 }
 
